@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"github.com/storyicon/graphquery"
-	"strings"
 	"encoding/json"
 	"github.com/rs/zerolog/log"
+	"github.com/storyicon/graphquery"
+	"strings"
 )
 
 func UnMashallHtml(data []byte, pattern string, ret interface{}) {

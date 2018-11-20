@@ -1,7 +1,9 @@
 package cmds
 
 import (
+	"github.com/kooksee/ktask/internal/config"
 	"github.com/kooksee/ktask/internal/dhtml"
+	"github.com/kooksee/ktask/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -18,9 +20,13 @@ func DHtmlCmd() *cobra.Command {
 		Use:   "dhtml",
 		Short: "爬取动态的html",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			config.DefaultConfig().Init()
+
 			cfg := dhtml.NewConfig()
 			cfg.SleepTime = sleepTime
 			cfg.Init()
+
+			utils.P(cfg)
 			return cfg.Run(addr)
 		},
 	})

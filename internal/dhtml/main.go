@@ -7,7 +7,6 @@ import (
 	"github.com/kooksee/ktask/internal/utils"
 	"github.com/mafredri/cdp/protocol/dom"
 	"github.com/mafredri/cdp/protocol/page"
-	"math/big"
 	"net/http"
 	"time"
 )
@@ -16,7 +15,7 @@ func (t *config) Run(addr string) error {
 
 	r := gin.New()
 	r.Use(gin.Logger())
-	r.GET("/task", func(ctx *gin.Context) {
+	r.POST("/task", func(ctx *gin.Context) {
 		c := t.GetChrome()
 
 		domContent, err := c.Page.DOMContentEventFired(ctx)
@@ -28,22 +27,17 @@ func (t *config) Run(addr string) error {
 
 		utils.MustNotError(c.Page.Enable(ctx))
 
-		url, _ := ctx.GetQuery("url")
+		task := &kts.Task{}
+		utils.MustNotError(task.DecodeFromReader(ctx.Request.Body))
+
+		hi := &kts.HTMLItem{}
+		utils.MustNotError(hi.Decode([]byte(task.Input)))
+
+		url := hi.URL
 		_, err = c.Page.Navigate(ctx, page.NewNavigateArgs(url))
 		utils.MustNotError(err)
 
-		sleepTime, _ := ctx.GetQuery("sleep_time")
-		if sleepTime == "" {
-			time.Sleep(time.Second * time.Duration(t.SleepTime))
-		} else {
-			dt, ok := big.NewInt(0).SetString(sleepTime, 10)
-			if ok {
-				time.Sleep(time.Second * time.Duration(dt.Int64()))
-			} else {
-				ctx.String(http.StatusBadRequest, "sleep_time解析失败,正确为[sleep_time=2]")
-				return
-			}
-		}
+		time.Sleep(time.Second * time.Duration(t.SleepTime))
 
 		// Wait until we have a DOMContentEventFired event.
 		_, err = domContent.Recv()
@@ -58,11 +52,19 @@ func (t *config) Run(addr string) error {
 		result, err := c.DOM.GetOuterHTML(ctx, &dom.GetOuterHTMLArgs{NodeID: &doc.Root.NodeID})
 		utils.MustNotError(err)
 
-		t := &kts.Task{}
-		t.Output = result.OuterHTML
-		t.Status = cnst.TaskStatus.Success
-		t.Code = "ok"
-		ctx.String(http.StatusOK, result.OuterHTML)
+		hp := t.GetPattern(hi.PatternName)
+
+		var ddt []map[string]interface{}
+		utils.UnMashallHtml([]byte(result.OuterHTML), hp.List.Pattern, &ddt)
+
+		utils.P(ddt)
+
+		task.Output = result.OuterHTML
+		task.Status = cnst.TaskStatus.Success
+		task.Code = "ok"
+
+		utils.P(task)
+		ctx.JSON(http.StatusOK, task)
 		return
 	})
 

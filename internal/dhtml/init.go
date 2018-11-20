@@ -1,9 +1,9 @@
 package dhtml
 
 import (
-	"os"
 	"github.com/json-iterator/go"
 	"math/rand"
+	"os"
 	"time"
 )
 

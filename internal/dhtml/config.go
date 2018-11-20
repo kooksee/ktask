@@ -2,9 +2,13 @@ package dhtml
 
 import (
 	"context"
+	"github.com/go-redis/redis"
+	"github.com/kooksee/ktask/internal/kts"
+	"github.com/kooksee/ktask/internal/utils"
 	"github.com/mafredri/cdp"
 	"github.com/mafredri/cdp/devtool"
 	"github.com/mafredri/cdp/rpcc"
+	"github.com/rs/zerolog"
 	"math/big"
 	"math/rand"
 	"strings"
@@ -15,6 +19,9 @@ type config struct {
 	ChromeUrls []string
 	SleepTime  int
 	chromes    []*cdp.Client
+
+	RedisUrl string
+	redis    *redis.Client
 }
 
 func (t *config) GetChrome() *cdp.Client {
@@ -54,6 +61,34 @@ func (t *config) Init() {
 		b, _ := big.NewInt(0).SetString(e, 10)
 		t.SleepTime = int(b.Int64())
 	}
+
+	if e := env("redis_url"); e != "" {
+		t.RedisUrl = e
+	}
+
+	opt, err := redis.ParseURL(t.RedisUrl)
+	utils.MustNotError(err)
+	opt.DialTimeout = time.Minute
+	opt.PoolTimeout = time.Minute
+	opt.PoolSize = 10
+	t.redis = redis.NewClient(opt)
+	utils.MustNotError(t.redis.Ping().Err())
+}
+
+func (t *config) GetPattern(name string) *kts.HtmlPattern {
+	var cmd *redis.StringCmd
+	utils.MustNotError(utils.Retry(5, func(l zerolog.Logger) error {
+		cmd = t.redis.HGet("mworker:pattern", name)
+		if err := cmd.Err(); err != nil {
+			l.Error().Err(err).Str("mth", "GetPattern.redis.HGet").Msg(err.Error())
+		}
+		return cmd.Err()
+	}))
+
+	p := &kts.HtmlPattern{}
+	utils.MustNotError(p.Decode([]byte(cmd.Val())))
+
+	return p
 }
 
 func NewConfig() *config {

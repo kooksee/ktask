@@ -64,7 +64,7 @@ func (t *config) Init() {
 		ip := utils.IpAddress()
 		log.Logger = log.Logger.
 			With().
-			Str("service_name", "kask").
+			Str("service_name", "ktask").
 			Str("service_id", ip).
 			Str("service_ip", ip).
 			Caller().

@@ -5,6 +5,7 @@ import (
 	"github.com/kooksee/ktask/internal/cnst"
 	"github.com/kooksee/ktask/internal/kts"
 	"github.com/kooksee/ktask/internal/utils"
+	"github.com/rs/zerolog"
 	"io/ioutil"
 	"strings"
 )
@@ -29,8 +30,12 @@ func (t *config) OssSaveLog(data []byte) error {
 	ks = append(ks, time)
 	k := strings.Join(ks, "/") + ".json"
 
-	return utils.Retry(3, func() error {
-		return bk.PutObject(k, bytes.NewBuffer(data))
+	var err error
+	return utils.Retry(3, func(l zerolog.Logger) error {
+		if err = bk.PutObject(k, bytes.NewBuffer(data)); err != nil {
+			l.Error().Err(err).Str("mth", "OssSaveLog.PutObject").Msg(err.Error())
+		}
+		return err
 	})
 }
 

@@ -20,3 +20,4 @@ kdata
 main
 .idea
 tests
+.env

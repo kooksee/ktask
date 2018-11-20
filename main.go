@@ -10,7 +10,6 @@ func main() {
 	rootCmd.AddCommand(
 		cmds.VersionCmd(),
 		cmds.HttpProxyExampleCmd(),
-		cmds.LogTaskCmd(),
 		cmds.ShowCmd(),
 		cmds.DHtmlCmd(),
 	)

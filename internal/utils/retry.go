@@ -2,9 +2,10 @@ package utils
 
 import (
 	"github.com/kooksee/ktask/internal/errs"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"time"
 	"strings"
+	"time"
 )
 
 func fibonacci() func() int {
@@ -15,21 +16,23 @@ func fibonacci() func() int {
 	}
 }
 
-func Retry(num int, fn func() error) (err error) {
+func Retry(num int, fn func(log zerolog.Logger) error) (err error) {
 	t := fibonacci()
-
+	var sleepTime = 0
+	var l zerolog.Logger
 	for i := 0; ; i++ {
-		if err = fn(); err == nil || err == errs.NotFound {
-			return err
-		}
 
-		sleepTime := t()
-		log.Error().
+		l = log.With().
 			Err(err).
 			Int("retry_num", i).
 			Int("sleep_time", sleepTime).
-			Str("method", "Retry").
-			Msg("Retry")
+			Str("method", "Retry").Logger()
+
+		if err = fn(l); err == nil || err == errs.NotFound {
+			return err
+		}
+
+		sleepTime = t()
 
 		if strings.Contains(err.Error(), "timeout") {
 			time.Sleep(time.Second * time.Duration(sleepTime))
@@ -42,5 +45,4 @@ func Retry(num int, fn func() error) (err error) {
 
 		time.Sleep(time.Second * time.Duration(sleepTime))
 	}
-	return nil
 }
