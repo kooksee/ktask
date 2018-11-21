@@ -9,6 +9,7 @@ func RootCmd() *cobra.Command {
 	var root = func(cmd *cobra.Command) *cobra.Command {
 		cfg := config.DefaultConfig()
 		cmd.PersistentFlags().BoolVar(&cfg.Debug, "debug", cfg.Debug, "debug")
+		cmd.PersistentFlags().StringVar(&cfg.KaskUrl, "kask_url", cfg.KaskUrl, "kask url")
 		return cmd
 	}
 

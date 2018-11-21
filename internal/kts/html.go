@@ -5,15 +5,13 @@ import (
 )
 
 type HTMLItem struct {
-	URL      string            `json:"url" binding:"required"`
-	PUrl     string            `json:"purl"`
-	FileName string            `json:"file_name"`
-	Static   bool              `json:"static,omitempty"`
-	Header   map[string]string `json:"header,omitempty"`
-
+	URL         string                 `json:"url"`
+	PUrl        string                 `json:"purl"`
+	Static      bool                   `json:"static,omitempty"`
+	Header      map[string]string      `json:"header,omitempty"`
 	PatternName string                 `json:"pattern_name"`
 	IsList      bool                   `json:"is_list"`
-	Data        map[string]interface{} `json:"data"`
+	Extra       map[string]interface{} `json:"data"`
 }
 
 func (t *HTMLItem) Decode(data []byte) error {
@@ -30,7 +28,6 @@ func (t *HTMLItem) Mock() *HTMLItem {
 	return &HTMLItem{
 		URL:         "http://roll.news.qq.com",
 		PUrl:        "http://roll.news.qq.com",
-		FileName:    "",
 		Static:      false,
 		PatternName: "qq_roll",
 		IsList:      true,

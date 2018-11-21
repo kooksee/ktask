@@ -1,33 +1,33 @@
 .PHONY: version build build_linux docker_login docker_build docker_push_dev docker_push_pro
 .PHONY: rm_stop
 
-Version = v0.0.1
-VersionFile = version/version.go
-CommitVersion = $(shell git rev-parse --short=8 HEAD)
-BuildVersion = $(shell date "+%F %T")
-GOBIN = $(shell pwd)
+_Version = v1.0.0
+_VersionFile = version/version.go
+_CommitVersion = $(shell git rev-parse --short=8 HEAD)
+_BuildVersion = $(shell date "+%F %T")
+_GOBIN = $(shell pwd)
 
-_ProjectPath = github.com/kooksee/ktask
-ImagesPrefix = registry.cn-hangzhou.aliyuncs.com/ybase/
-ImageName = ktask
-ImageLatestName = $(ImagesPrefix)$(ImageName)
-ImageTestName = $(ImagesPrefix)$(ImageName):test
-ImageVersionName = $(ImagesPrefix)$(ImageName):$(Version)
+_ImageName = ktask
+_ProjectPath = github.com/kooksee/$(_ImageName)
+_ImagesPrefix = registry.cn-hangzhou.aliyuncs.com/ybase/
+_ImageLatestName = $(_ImagesPrefix)$(_ImageName)
+_ImageTestName = $(_ImagesPrefix)$(_ImageName):test
+_ImageVersionName = $(_ImagesPrefix)$(_ImageName):$(_Version)
 
-version:
+_version:
 	@echo "项目版本处理"
-	@echo "package version" > $(VersionFile)
-	@echo "const Version = "\"$(Version)\" >> $(VersionFile)
-	@echo "const BuildVersion = "\"$(BuildVersion)\" >> $(VersionFile)
-	@echo "const CommitVersion = "\"$(CommitVersion)\" >> $(VersionFile)
+	@echo "package version" > $(_VersionFile)
+	@echo "const Version = "\"$(_Version)\" >> $(_VersionFile)
+	@echo "const BuildVersion = "\"$(_BuildVersion)\" >> $(_VersionFile)
+	@echo "const CommitVersion = "\"$(_CommitVersion)\" >> $(_VersionFile)
 
-build:
+b:
 	@echo "开始编译"
-	GOBIN=$(GOBIN) go install main.go
+	GOBIN=$(_GOBIN) go install main.go
 
-build_linux: version
+_build_linux: _version
 	@echo "交叉编译成linux应用"
-	docker run --rm -v $(GOPATH):/go golang:latest go build -o /go/src/$(_ProjectPath)/main /go/src/$(_ProjectPath)/main.go
+	docker run --rm -v $(_GOPATH):/go golang:latest go build -o /go/src/$(_ProjectPath)/main /go/src/$(_ProjectPath)/main.go
 
 rm_stop:
 	@echo "删除所有的的容器"
@@ -36,19 +36,14 @@ rm_stop:
 
 rm_none:
 	@echo "删除所为none的image"
-	sudo docker images  | grep none | awk '{print $3}' | xargs docker rmi
+	sudo docker images  | grep none | awk '{print $3}' | xargs docker rmi -f
 
-docker_push_pro: docker_build
-	@echo "docker push pro"
-	sudo docker tag $(ImageLatestName) $(ImageVersionName)
-	sudo docker push $(ImageVersionName)
-	sudo docker push $(ImageVersionName)
+docker_pro:_build_linux
+	@echo "docker build and push"
+	sudo docker build -t $(_ImageVersionName) .
+	sudo docker push $(_ImageVersionName)
 
-docker_push_dev: docker_build
-	@echo "docker push test"
-	sudo docker tag $(ImageLatestName) $(ImageTestName)
-	sudo docker push $(ImageTestName)
-
-docker_build: build_linux
-	@echo "构建docker镜像"
-	sudo docker build -t $(ImageLatestName) .
+docker_dev:_build_linux
+	@echo "docker build and push"
+	sudo docker build -t $(_ImageTestName) .
+	sudo docker push $(_ImageTestName)

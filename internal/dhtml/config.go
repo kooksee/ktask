@@ -68,9 +68,6 @@ func (t *config) Init() {
 
 	opt, err := redis.ParseURL(t.RedisUrl)
 	utils.MustNotError(err)
-	opt.DialTimeout = time.Minute
-	opt.PoolTimeout = time.Minute
-	opt.PoolSize = 10
 	t.redis = redis.NewClient(opt)
 	utils.MustNotError(t.redis.Ping().Err())
 }
@@ -87,7 +84,6 @@ func (t *config) GetPattern(name string) *kts.HtmlPattern {
 
 	p := &kts.HtmlPattern{}
 	utils.MustNotError(p.Decode([]byte(cmd.Val())))
-
 	return p
 }
 

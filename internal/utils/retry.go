@@ -16,7 +16,7 @@ func fibonacci() func() int {
 	}
 }
 
-func Retry(num int, fn func(log zerolog.Logger) error) (err error) {
+func Retry(num int, fn func(l zerolog.Logger) error) (err error) {
 	t := fibonacci()
 	var sleepTime = 0
 	var l zerolog.Logger

@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/kooksee/ktask/cmds"
+	"github.com/kooksee/ktask/internal/utils"
 )
 
 func main() {
@@ -14,7 +15,5 @@ func main() {
 		cmds.DHtmlCmd(),
 	)
 
-	if err := rootCmd.Execute(); err != nil {
-		panic(err.Error())
-	}
+	utils.MustNotError(rootCmd.Execute())
 }

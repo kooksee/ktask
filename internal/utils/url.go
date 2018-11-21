@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"strings"
 	url2 "net/url"
+	"strings"
 )
 
 func UrlCheck(u1, url string) string {
@@ -47,4 +47,10 @@ func UrlCheck(u1, url string) string {
 	}
 	return url
 
+}
+
+func GetUrlType(url string) string {
+	dt := strings.Split(url, "?")
+	dt1 := strings.Split(dt[0], ".")
+	return dt1[len(dt1)-1]
 }

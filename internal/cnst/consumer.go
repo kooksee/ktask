@@ -7,6 +7,7 @@ type consumer struct {
 	TaskIds    string
 	Log        string
 	HttpGet    string
+	DHtml      string
 }
 
 var Consumer = consumer{
@@ -16,4 +17,5 @@ var Consumer = consumer{
 	Callback:   "callback",
 	Log:        "log",
 	HttpGet:    "http_get",
+	DHtml:      "dhtml",
 }

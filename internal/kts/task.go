@@ -32,7 +32,6 @@ func (t *Task) Mock() *Task {
 		TaskID:      uuid.New().String(),
 		TopicName:   "log",
 		Status:      cnst.TaskStatus.Pending,
-		Tx:          cnst.TaskTx.Send,
 	}
 }
 

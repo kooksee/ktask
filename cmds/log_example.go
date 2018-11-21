@@ -10,24 +10,29 @@ import (
 )
 
 func HttpProxyExampleCmd() *cobra.Command {
-	var logHttpCmd = func(cmd *cobra.Command) *cobra.Command {
+	var topicName = "log"
+	var handle = func(cmd *cobra.Command) *cobra.Command {
 		return cmd
 	}
-	return logHttpCmd(&cobra.Command{
-		Use:   "http_proxy_example",
+
+	return handle(&cobra.Command{
+		Use:   "log_example",
 		Short: "http proxy example",
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			r := gin.Default()
+
+			r.GET("/topic", func(ctx *gin.Context) {
+				ctx.String(http.StatusOK, topicName)
+				return
+			})
+
 			r.POST("/task", func(ctx *gin.Context) {
 				task := &kts.Task{}
 				utils.MustNotError(task.DecodeFromReader(ctx.Request.Body))
 				utils.P(task)
-				ctx.JSON(http.StatusOK, &kts.TaskResult{
-					TaskID: task.TaskID,
-					Status: cnst.TaskStatus.Success,
-					Output: "ok",
-					Code:   "ok",
-				})
+				task.Status = cnst.TaskStatus.Success
+				task.Output = "ok"
+				ctx.JSON(http.StatusOK, task)
 			})
 
 			return r.Run(":8081")

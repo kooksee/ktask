@@ -1,12 +1,12 @@
 package utils
 
 import (
-	"fmt"
 	"encoding/json"
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"regexp"
+	"github.com/rs/zerolog/log"
 	"reflect"
+	"regexp"
 )
 
 func MustNotError(err error) {
@@ -22,7 +22,7 @@ func P(d ... interface{}) {
 		if err != nil {
 			panic(err.Error())
 		}
-		fmt.Println(reflect.ValueOf(i).String(),"->",string(dt))
+		fmt.Println(reflect.ValueOf(i).String(), "->", string(dt))
 	}
 }
 

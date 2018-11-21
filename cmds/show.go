@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// VersionCmd ...
 func ShowCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:     "show",

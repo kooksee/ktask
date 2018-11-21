@@ -12,14 +12,14 @@ import (
 )
 
 type config struct {
-	Cache  *cache.Cache
-	Debug  bool
-	OssUrl string
-
+	Cache   *cache.Cache
+	Debug   bool
 	KaskUrl string
 
 	ossCfg *oss.Config
+	OssUrl string
 	oss    *oss.Client
+
 	id     string
 	isInit bool
 }
@@ -35,46 +35,42 @@ func (t *config) IsDebug() bool {
 	return t.Debug
 }
 
-func (t *config) GetDebugLog() zerolog.Logger {
-	return log.
-		Output(zerolog.ConsoleWriter{Out: os.Stdout}).
+func (t *config) Init() {
+
+	zerolog.TimestampFieldName = "time"
+	zerolog.LevelFieldName = "level"
+	zerolog.MessageFieldName = "msg"
+
+	if t.Debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	} else {
+		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	}
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
+
+	ip := utils.IpAddress()
+	log.Logger = log.Logger.
 		With().
-		Str("service_name", "kask").
+		Str("service_name", "ktask").
+		Str("service_id", ip).
+		Str("service_ip", ip).
 		Caller().
 		Logger()
-}
 
-var initOnce sync.Once
-
-func (t *config) Init() {
-	initOnce.Do(func() {
-
-		zerolog.TimestampFieldName = "time"
-		zerolog.LevelFieldName = "level"
-		zerolog.MessageFieldName = "msg"
-
-		if t.Debug {
-			zerolog.SetGlobalLevel(zerolog.DebugLevel)
-			log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout})
-		} else {
-			zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-			log.Logger = log.Output(logWriter())
-		}
-
-		ip := utils.IpAddress()
-		log.Logger = log.Logger.
-			With().
-			Str("service_name", "ktask").
-			Str("service_id", ip).
-			Str("service_ip", ip).
-			Caller().
-			Logger()
-
+	if t.OssUrl != "" {
 		ossCfg := utils.ParseOssUrl(t.OssUrl)
 		c, err := oss.New(ossCfg.Endpoint, ossCfg.AccessKeyID, ossCfg.AccessKeySecret)
 		utils.MustNotError(err)
+
+		rest, err := c.ListBuckets()
+		if err != nil {
+			utils.P(rest)
+			utils.MustNotError(err)
+		}
 		t.oss = c
-	})
+	}
+
 }
 
 var cfg *config
@@ -85,7 +81,6 @@ func DefaultConfig() *config {
 		cfg = &config{
 			Debug:   true,
 			Cache:   cache.New(time.Minute*10, time.Minute*30),
-			OssUrl:  "",
 			KaskUrl: "http://localhost:8080",
 		}
 
@@ -93,9 +88,14 @@ func DefaultConfig() *config {
 			cfg.Debug = e == "true"
 		}
 
+		if e := env("KaskUrl"); e != "" {
+			cfg.KaskUrl = e
+		}
+
 		if e := env("OssUrl"); e != "" {
 			cfg.OssUrl = e
 		}
+
 	})
 	return cfg
 }
